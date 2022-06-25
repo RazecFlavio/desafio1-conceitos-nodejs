@@ -16,11 +16,11 @@ function checksExistsUserAccount(request, response, next) {
 
 app.post('/users', (request, response) => {
   // Complete aqui
-  const { name, username } = req.body;
+  const { name, username } = request.body;
   const user = {
     id: uuidv4(),
     name,
-    user,
+    username,
     todos: []
   }
   users.push(user);
@@ -29,6 +29,9 @@ app.post('/users', (request, response) => {
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   // Complete aqui
+  const { username } = request.headers;
+  const todos = users.find(user => user.username === username).todos;
+  return response.json(todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
