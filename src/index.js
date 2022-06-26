@@ -70,28 +70,19 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
 });
 
-app.put('/todos/:id', checksExistsUserAccount, todoExists, (request, response) => {
-  const { user } = request;
+app.put('/todos/:id', checksExistsUserAccount, todoExists, (request, response) => {  
   const { title, deadline } = request.body;
+
   let todo = request.todo;
+  todo.title = title;
+  todo.deadline = new Date(deadline);
 
-  let updatedTodo = todo;
-  updatedTodo.title = title;
-  updatedTodo.deadline = new Date(deadline);
-
-  user.todos.splice(todo, 1, updatedTodo);
-
-  return response.status(201).send();
+  return response.status(201).json(todo);
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, todoExists, (request, response) => {
-  const { user } = request;
+app.patch('/todos/:id/done', checksExistsUserAccount, todoExists, (request, response) => {  
   let todo = request.todo;
-
-  let updatedTodo = todo;
-  updatedTodo.done = true;
-  user.todos.splice(todo, 1, updatedTodo);
-
+  todo.done = true;
   return response.status(201).send();
 });
 
