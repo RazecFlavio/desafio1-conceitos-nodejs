@@ -15,9 +15,19 @@ function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers;
   const user = users.find(user => user.username === username);
   if (!user) {
-    return response.status(400).json({ error: "User not found! " });
+    return response.status(404).json({ error: "User not found! " });
   }
   request.user = user;
+  return next();
+}
+function todoExists(request, response, next) {
+  const user = request.user
+  const { id } = request.params;
+  let todo = user.todos.find(todo => todo.id === id);
+  if (!todo) {
+    return response.status(404).json({ error: "TODO not found! " });
+  }
+  request.todo = todo;
   return next();
 }
 
@@ -48,48 +58,49 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
   // Complete aqui
   const { user } = request;
   const { title, deadline } = request.body;
-  user.todos.push({
+  let todo = {
     id: uuidv4(),
     title,
     done: false,
     deadline: new Date(deadline),
     created_at: new Date()
-  });
-  return response.status(201).json(user.todos);
+  };
+  user.todos.push(todo);
+  return response.status(201).json(todo);
 
 });
 
-app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
-  const { id } = request.params;
+app.put('/todos/:id', checksExistsUserAccount, todoExists, (request, response) => {
   const { user } = request;
   const { title, deadline } = request.body;
-  let todo = user.todos.find(todo => todo.id === id);
+  let todo = request.todo;
+
   let updatedTodo = todo;
   updatedTodo.title = title;
   updatedTodo.deadline = new Date(deadline);
-  users.splice(todo, 1, updatedTodo);
+
+  user.todos.splice(todo, 1, updatedTodo);
+
   return response.status(201).send();
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqu
+app.patch('/todos/:id/done', checksExistsUserAccount, todoExists, (request, response) => {
   const { user } = request;
-  const { id } = request.params;
-  let todo = user.todos.find(todo => todo.id === id);
+  let todo = request.todo;
+
   let updatedTodo = todo;
   updatedTodo.done = true;
   user.todos.splice(todo, 1, updatedTodo);
+
   return response.status(201).send();
 });
 
-app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
-  const { id } = request.params;
+app.delete('/todos/:id', checksExistsUserAccount, todoExists, (request, response) => {
+  // Complete aqui  
   const { user } = request;
-  let todo = user.todos.find(todo => todo.id === id);
+  let todo = request.todo;
   user.todos.splice(todo, 1);
-  return response.status(201).send();
+  return response.status(204).send();
 });
 
 module.exports = app;
