@@ -24,6 +24,10 @@ function checksExistsUserAccount(request, response, next) {
 app.post('/users', (request, response) => {
   // Complete aqui
   const { name, username } = request.body;
+  const userExists = users.some(user => user.username === username);
+  if (userExists) {
+    return response.status(400).json({ error: "User already exists." });
+  }
   const user = {
     id: uuidv4(),
     name,
@@ -57,14 +61,35 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   // Complete aqui
+  const { id } = request.params;
+  const { user } = request;
+  const { title, deadline } = request.body;
+  let todo = user.todos.find(todo => todo.id === id);
+  let updatedTodo = todo;
+  updatedTodo.title = title;
+  updatedTodo.deadline = new Date(deadline);
+  users.splice(todo, 1, updatedTodo);
+  return response.status(201).send();
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  // Complete aqu
+  const { user } = request;
+  const { id } = request.params;
+  let todo = user.todos.find(todo => todo.id === id);
+  let updatedTodo = todo;
+  updatedTodo.done = true;
+  user.todos.splice(todo, 1, updatedTodo);
+  return response.status(201).send();
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
   // Complete aqui
+  const { id } = request.params;
+  const { user } = request;
+  let todo = user.todos.find(todo => todo.id === id);
+  user.todos.splice(todo, 1);
+  return response.status(201).send();
 });
 
 module.exports = app;
